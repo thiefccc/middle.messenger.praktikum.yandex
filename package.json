@@ -27,7 +27,7 @@
     "vite": "^6.2.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
     "dotenv": "^17.3.1"
