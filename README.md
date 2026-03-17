@@ -37,7 +37,8 @@ npm install
 ## Команды
 
 - `npm run start` — сборка и запуск проекта (порт 3000)
-- `npm run dev` — запуск dev-сервера (порт 3000)
+- `npm run dev` — запуск dev-сервера c HBS (порт 3000)
+- `npm run preview` — запуск просмотра (но лучше dev - HBS есть)
 - `npm run build` — сборка в `dist/`
 - `npm run lint` — проверка TS/JS кода (ESLint)
 - `npm run lint:fix` — автоисправление ESLint
