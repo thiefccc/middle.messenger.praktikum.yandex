@@ -7,3 +7,6 @@ dist
 !.env.example
 .docker*
 .nvmrc
+/.editorconfig
+/.stylelintrc.json
+/eslint.config.js
