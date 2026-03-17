@@ -1,0 +1,11 @@
+@use "../../styles/variables" as *;
+
+.link {
+  font-size: 13px;
+  color: $color-primary;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

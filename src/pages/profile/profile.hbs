@@ -1,0 +1,44 @@
+<main class="page">
+  <section class="profile">
+    <div class="profile__header">
+      <label class="avatar-lg">
+        <span>👤</span>
+        <div class="avatar-lg__overlay">Загрузить</div>
+        <input class="avatar-lg__input" type="file" name="avatar" accept="image/*" />
+      </label>
+      <h1 class="profile__name">{{displayName}}</h1>
+    </div>
+    <ul class="profile__fields">
+      <li class="profile__field">
+        <span class="profile__field-label">Почта</span>
+        <span class="profile__field-value">{{email}}</span>
+      </li>
+      <li class="profile__field">
+        <span class="profile__field-label">Логин</span>
+        <span class="profile__field-value">{{login}}</span>
+      </li>
+      <li class="profile__field">
+        <span class="profile__field-label">Имя</span>
+        <span class="profile__field-value">{{firstName}}</span>
+      </li>
+      <li class="profile__field">
+        <span class="profile__field-label">Фамилия</span>
+        <span class="profile__field-value">{{lastName}}</span>
+      </li>
+      <li class="profile__field">
+        <span class="profile__field-label">Имя в чате</span>
+        <span class="profile__field-value">{{displayName}}</span>
+      </li>
+      <li class="profile__field">
+        <span class="profile__field-label">Телефон</span>
+        <span class="profile__field-value">{{phone}}</span>
+      </li>
+    </ul>
+    <div class="profile__actions">
+      <button class="button-secondary" type="button">Изменить данные</button>
+      <button class="button-secondary" type="button">Изменить пароль</button>
+      <button class="button-danger" type="button">Выйти</button>
+    </div>
+    <a class="link" data-page="chat-list" href="#">← Назад к чатам</a>
+  </section>
+</main>

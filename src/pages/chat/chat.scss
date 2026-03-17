@@ -1,0 +1,55 @@
+@use "../../styles/variables" as *;
+
+.chat-page {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: $color-bg;
+}
+
+.chat__header {
+  padding: 14px 24px;
+  background: $color-surface;
+  border-bottom: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat__back {
+  font-size: 13px;
+  color: $color-primary;
+  background: none;
+}
+
+.chat__name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.chat__messages {
+  flex: 1;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.chat__footer {
+  padding: 12px 24px;
+  background: $color-surface;
+  border-top: 1px solid $color-border;
+}
+
+.chat__form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}

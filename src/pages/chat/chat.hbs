@@ -1,0 +1,22 @@
+<main class="chat-page">
+  <section class="chat">
+    <header class="chat__header">
+      <button class="chat__back" type="button" data-page="chat-list">← Назад</button>
+      <h1 class="chat__name">{{chatName}}</h1>
+    </header>
+    <section class="chat__messages">
+      {{#each messages}}
+      <div class="message {{#if incoming}}message-incoming{{else}}message-outgoing{{/if}}">
+        <p class="message__text">{{text}}</p>
+        <time class="message__time">{{time}}</time>
+      </div>
+      {{/each}}
+    </section>
+    <footer class="chat__footer">
+      <form class="chat__form">
+        <input class="input-chat" type="text" name="message" placeholder="Сообщение..." />
+        <button class="button-send" type="submit">Отправить</button>
+      </form>
+    </footer>
+  </section>
+</main>
