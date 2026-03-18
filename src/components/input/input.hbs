@@ -1,1 +1,7 @@
-<input class="input" type="text" placeholder="Введите текст" />
+<input
+  class="input {{className}}"
+  type="{{#if type}}{{type}}{{else}}text{{/if}}"
+  name="{{name}}"
+  value="{{value}}"
+  placeholder="{{#if placeholder}}{{placeholder}}{{else}}Введите текст{{/if}}"
+/>

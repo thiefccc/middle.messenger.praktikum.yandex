@@ -12,7 +12,7 @@ import { error404Template } from "./pages/error404";
 import { error500Template } from "./pages/error500";
 import { chatListTemplate } from "./pages/chat-list";
 import { chatTemplate } from "./pages/chat";
-import { profileTemplate } from "./pages/profile";
+import { profileTemplate, initProfileEditMode } from "./pages/profile";
 
 Handlebars.registerHelper("firstLetter", (str: string) => {
   return str ? str.charAt(0).toUpperCase() : "?";
@@ -75,7 +75,9 @@ const pages: Record<string, { template: string; context: Record<string, unknown>
 
 function navigate(page: string): void {
   const root = document.getElementById("app");
-  if (!root) return;
+  if (!root) {
+    return;
+  }
 
   const pageData = pages[page];
   if (!pageData) {
@@ -95,6 +97,10 @@ function navigate(page: string): void {
       if (target) navigate(target);
     });
   });
+
+  if (page === "profile") {
+    initProfileEditMode();
+  }
 }
 
 function getPageFromHash(): string {
