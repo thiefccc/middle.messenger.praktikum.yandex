@@ -1,0 +1,32 @@
+@use "../../../../styles/variables" as *;
+
+.message {
+  max-width: 60%;
+  padding: 10px 14px;
+  border-radius: $radius-md;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.message-incoming {
+  align-self: flex-start;
+  background: $color-incoming;
+  color: $color-text;
+}
+
+.message-outgoing {
+  align-self: flex-end;
+  background: $color-outgoing;
+  color: $color-outgoing-text;
+}
+
+.message__text {
+  margin: 0;
+}
+
+.message__time {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 4px;
+  text-align: right;
+}

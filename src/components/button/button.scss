@@ -1,0 +1,57 @@
+@use "../../styles/variables" as *;
+
+.button {
+  width: 100%;
+  padding: 12px;
+  border-radius: $radius-sm;
+  font-size: 15px;
+  font-weight: 500;
+  background: $color-primary;
+  color: #fff;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}
+
+.button-secondary {
+  width: 100%;
+  padding: 12px;
+  border-radius: $radius-sm;
+  font-size: 15px;
+  font-weight: 500;
+  background: transparent;
+  color: $color-primary;
+
+  &:hover {
+    background: $color-bg;
+  }
+}
+
+.button-danger {
+  width: 100%;
+  padding: 12px;
+  border-radius: $radius-sm;
+  font-size: 15px;
+  font-weight: 500;
+  background: $color-error;
+  color: #fff;
+
+  &:hover {
+    background: $color-error;
+  }
+}
+
+.button-send {
+  width: auto;
+  padding: 10px 20px;
+  border-radius: $radius-lg;
+  font-size: 14px;
+  font-weight: 500;
+  background: $color-primary;
+  color: #fff;
+
+  &:hover {
+    background: $color-primary-hover;
+  }
+}

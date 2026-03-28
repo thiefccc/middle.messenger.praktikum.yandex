@@ -1,0 +1,19 @@
+$color-primary: #4a76ff;
+$color-primary-hover: #3a5fd9;
+$color-bg: #f5f6fa;
+$color-surface: #fff;
+$color-text: #1e1e2f;
+$color-text-secondary: #8e8ea0;
+$color-border: #e0e0e8;
+$color-error: #e74c3c;
+$color-incoming: #e8eaf6;
+$color-outgoing: #4a76ff;
+$color-outgoing-text: #fff;
+$radius-sm: 6px;
+$radius-md: 12px;
+$radius-lg: 20px;
+$shadow-card: 0 2px 12px rgb(0 0 0 / 8%);
+$font-family: "Segoe UI", "Helvetica Neue", arial, sans-serif;
+
+// TODO think how to set css variables from DB where user will save them for his settings,
+// e.g. tapSlite visibility area radius
