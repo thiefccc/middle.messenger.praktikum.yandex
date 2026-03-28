@@ -1,0 +1,12 @@
+@use "../../styles/variables" as *;
+
+.validation-error {
+  display: none;
+  font-size: 11px;
+  color: $color-error;
+  margin-top: 4px;
+
+  &--visible {
+    display: block;
+  }
+}
