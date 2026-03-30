@@ -13,6 +13,34 @@ interface ChatPageProps {
 export class ChatPage extends Block<ChatPageProps> {
   static componentName = 'ChatPage';
 
+  constructor(props: ChatPageProps) {
+    super({
+      ...props,
+      events: {
+        submit: (e: Event) => {
+          e.preventDefault();
+          const form = (e.target as HTMLElement).closest('form');
+          if (!form) {
+            return;
+          }
+
+          const data = validateForm(form);
+          if (!data) {
+            return;
+          }
+
+          console.log('Chat message:', data);
+
+          const messagesContainer = this.refs['messages'];
+          if (messagesContainer && data.message) {
+            this.appendMessage(messagesContainer, data.message);
+            form.reset();
+          }
+        },
+      },
+    });
+  }
+
   protected template = `
     <main class="chat-page">
       <section class="chat">
@@ -37,30 +65,6 @@ export class ChatPage extends Block<ChatPageProps> {
       </section>
     </main>
   `;
-
-  protected events = {
-    submit: (e: Event) => {
-      e.preventDefault();
-      const form = (e.target as HTMLElement).closest('form');
-      if (!form) {
-        return;
-      }
-
-      const data = validateForm(form);
-      if (!data) {
-        return;
-      }
-
-      console.log('Chat message:', data);
-
-      // TODO spike to simulate message sending with render-first
-      const messagesContainer = this.refs['messages'];
-      if (messagesContainer && data.message) {
-        this.appendMessage(messagesContainer, data.message);
-        form.reset();
-      }
-    },
-  };
 
   private appendMessage(container: Element, text: string): void {
     const time = formatTime(new Date());

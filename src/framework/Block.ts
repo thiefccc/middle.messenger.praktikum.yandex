@@ -1,16 +1,17 @@
 import Handlebars from 'handlebars';
 
+type EventListType = Record<string, (e: Event) => void>;
+
 export interface BlockOwnProps {
   __children?: Array<{
     component: Block;
     embed(node: DocumentFragment): void;
   }>;
   __refs?: Record<string, Element>;
+  events?: EventListType;
 }
 
 type BlockProps<T extends object = object> = T & BlockOwnProps;
-
-type EventListType = Record<string, (e: Event) => void>;
 
 export abstract class Block<Props extends object = object> {
   protected abstract template: string;
@@ -23,10 +24,8 @@ export abstract class Block<Props extends object = object> {
 
   protected refs: Record<string, Element> = {};
 
-  protected events: EventListType = {};
-
-  constructor(props: Props = {} as Props) {
-    this.props = props as BlockProps<Props>;
+  constructor(props: BlockProps<Props> = {} as BlockProps<Props>) {
+    this.props = props;
   }
 
   public element(): Element | null {
@@ -44,7 +43,7 @@ export abstract class Block<Props extends object = object> {
   protected componentDidMount(): void {}
 
   private mountComponent(): void {
-    this.attachListeners();
+    this.addEvents();
     this.componentDidMount();
   }
 
@@ -55,23 +54,36 @@ export abstract class Block<Props extends object = object> {
       this.children.reverse().forEach((child) => child.unmountComponent());
 
       this.componentWillUnmount();
-      this.removeListeners();
+      this.removeEvents();
     }
   }
 
-  private attachListeners(): void {
-    for (const eventName in this.events) {
-      const callback = this.events[eventName];
-      if (this.domElement && callback) {
-        this.domElement.addEventListener(eventName, callback);
+  private addEvents(): void {
+    const events = this.props.events;
+    if (!events || !this.domElement) {
+      return;
+    }
+
+    for (const eventName in events) {
+      const callback = events[eventName];
+      if (callback) {
+        // spike for using outdated blur instead of focusout
+        const capture = eventName === 'blur';
+
+        this.domElement.addEventListener(eventName, callback, capture);
       }
     }
   }
 
-  private removeListeners(): void {
-    for (const eventName in this.events) {
-      const callback = this.events[eventName];
-      if (this.domElement && callback) {
+  private removeEvents(): void {
+    const events = this.props.events;
+    if (!events || !this.domElement) {
+      return;
+    }
+
+    for (const eventName in events) {
+      const callback = events[eventName];
+      if (callback) {
         this.domElement.removeEventListener(eventName, callback);
       }
     }

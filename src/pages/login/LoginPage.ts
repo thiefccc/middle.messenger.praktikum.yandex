@@ -5,6 +5,25 @@ import './login.scss';
 export class LoginPage extends Block {
   static componentName = 'LoginPage';
 
+  constructor() {
+    super({
+      events: {
+        submit: (e: Event) => {
+          e.preventDefault();
+          const form = (e.target as HTMLElement).closest('form');
+          if (!form) {
+            return;
+          }
+
+          const data = validateForm(form);
+          if (data) {
+            console.log('Login form data:', data);
+          }
+        },
+      },
+    });
+  }
+
   protected template = `
     <main class="page">
       <div class="form-card">
@@ -26,19 +45,4 @@ export class LoginPage extends Block {
       </div>
     </main>
   `;
-
-  protected events = {
-    submit: (e: Event) => {
-      e.preventDefault();
-      const form = (e.target as HTMLElement).closest('form');
-      if (!form) {
-        return;
-      }
-
-      const data = validateForm(form);
-      if (data) {
-        console.log('Login form data:', data);
-      }
-    },
-  };
 }
