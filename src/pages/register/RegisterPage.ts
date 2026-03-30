@@ -5,13 +5,31 @@ import './register.scss';
 export class RegisterPage extends Block {
   static componentName = 'RegisterPage';
 
+  constructor() {
+    super({
+      events: {
+        submit: (e: Event) => {
+          e.preventDefault();
+          const form = (e.target as HTMLElement).closest('form');
+          if (!form) {
+            return;
+          }
+
+          const data = validateForm(form);
+          if (data) {
+            console.log('Register form data:', data);
+          }
+        },
+      },
+    });
+  }
+
   protected template = `
     <main class="page">
       <div class="form-card">
         <h1 class="form-card__title">Регистрация</h1>
         <form class="form-card__form" ref="form">
           <div class="form-card__field">
-<!--            TODO maybe put label as separate optional component to the input? Or create InputLabel component -->
             <label class="form-card__label" for="email">Почта</label>
             {{{ Input type="email" name="email" placeholder="Введите почту" ref="email" }}}
           </div>
@@ -47,19 +65,4 @@ export class RegisterPage extends Block {
       </div>
     </main>
   `;
-
-  protected events = {
-    submit: (e: Event) => {
-      e.preventDefault();
-      const form = (e.target as HTMLElement).closest('form');
-      if (!form) {
-        return;
-      }
-
-      const data = validateForm(form);
-      if (data) {
-        console.log('Register form data:', data);
-      }
-    },
-  };
 }

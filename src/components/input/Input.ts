@@ -15,6 +15,17 @@ interface InputProps {
 export class Input extends Block<InputProps> {
   static componentName = 'Input';
 
+  constructor(props: InputProps = {}) {
+    super({
+      ...props,
+      events: {
+        blur: () => {
+          this.runValidation();
+        },
+      },
+    });
+  }
+
   protected template = `
     <div class="form-field">
       <input
@@ -30,17 +41,6 @@ export class Input extends Block<InputProps> {
       {{/unless}}
     </div>
   `;
-
-  componentDidMount(): void {
-    const input = this.refs['input'] as HTMLInputElement | undefined;
-    if (!input) {
-      return;
-    }
-
-    input.addEventListener('blur', () => {
-      this.runValidation();
-    });
-  }
 
   public runValidation(): string | null {
     const input = this.refs['input'] as HTMLInputElement | undefined;
