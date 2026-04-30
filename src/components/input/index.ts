@@ -1,2 +1,1 @@
-import "./input.scss";
-export { default as inputTemplate } from "./input.hbs?raw";
+export { Input } from './Input';

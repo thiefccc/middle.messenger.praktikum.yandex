@@ -1,2 +1,1 @@
-import "./button.scss";
-export { default as buttonTemplate } from "./button.hbs?raw";
+export { Button } from './Button';

@@ -40,21 +40,10 @@
   text-align: right;
 }
 
-.profile__field-input {
-  display: none;
+.profile__field-edit {
   font-size: 13px;
   text-align: right;
   max-width: 60%;
-}
-
-.profile__form--editing {
-  .profile__field-value {
-    display: none;
-  }
-
-  .profile__field-input {
-    display: block;
-  }
 }
 
 .profile__actions {
