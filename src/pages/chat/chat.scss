@@ -28,9 +28,63 @@
   background: none;
 }
 
+.chat__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .chat__name {
   font-size: 16px;
   font-weight: 600;
+}
+
+.chat__users-count {
+  font-size: 12px;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.chat-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 24px;
+  background: $color-surface;
+  border-bottom: 1px solid $color-border;
+  list-style: none;
+}
+
+.chat-users__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  background: $color-bg;
+  border-radius: 999px;
+  border: 1px solid $color-border;
+}
+
+.chat-users__name {
+  font-size: 12px;
+  color: $color-text;
+}
+
+.chat-users__role {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: $color-text-secondary;
+  letter-spacing: 0.5px;
+}
+
+.avatar.avatar--sm {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
 }
 
 .chat__messages {
@@ -52,4 +106,29 @@
   display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.chat--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.chat__placeholder {
+  color: $color-text-secondary;
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.chat__controls {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+
+  .button-secondary,
+  .button-danger {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
 }

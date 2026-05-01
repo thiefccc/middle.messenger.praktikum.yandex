@@ -35,3 +35,10 @@
   align-items: center;
   gap: 12px;
 }
+
+.form-card__error {
+  color: $color-error;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 8px;
+}

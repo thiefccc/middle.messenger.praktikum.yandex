@@ -49,7 +49,7 @@ export abstract class Block<Props extends object = object> {
 
   protected componentWillUnmount(): void {}
 
-  protected unmountComponent(): void {
+  public unmountComponent(): void {
     if (this.domElement) {
       this.children.reverse().forEach((child) => child.unmountComponent());
 

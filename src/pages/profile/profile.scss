@@ -53,3 +53,10 @@
   align-items: center;
   gap: 12px;
 }
+
+.profile__error {
+  color: $color-error;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 12px;
+}

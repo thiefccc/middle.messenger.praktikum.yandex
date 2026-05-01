@@ -14,5 +14,14 @@ export default defineConfig({
   server: {
     port: Number(process.env.PORT) || 3000,
     open: true,
+    proxy: {
+      "/api": {
+        target: "https://ya-praktikum.tech",
+        changeOrigin: true,
+        secure: true,
+        // Fix localhost SameOrigin non cookie problem
+        cookieDomainRewrite: "localhost",
+      },
+    },
   },
 });
