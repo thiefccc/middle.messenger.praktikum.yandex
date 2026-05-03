@@ -8,6 +8,34 @@
 
 Проект развёрнут: [https://resilient-monstera-55c5ab.netlify.app/](https://resilient-monstera-55c5ab.netlify.app/)
 
+### ⚠️ ВАЖНО: ограничение по браузеру при проверке production-сборки
+
+API Praktikum (`https://ya-praktikum.tech`) выдаёт авторизационную куку с атрибутами
+`Domain=ya-praktikum.tech; HttpOnly; Secure; SameSite=None`. Production-сборка ходит на этот
+API напрямую с домена `*.netlify.app`, поэтому в браузере это **third-party cookie**.
+
+Современные **Chromium-браузеры (Chrome / Edge / Brave) начиная с версии ~143 по
+умолчанию режут такие cookies политикой Tracking Protection** (Privacy Sandbox). На запросах
+видны заголовки `sec-fetch-site: cross-site` и `sec-fetch-storage-access: none` — кука лежит
+в `Application → Cookies → ya-praktikum.tech`, но в кросс-сайт запрос **не прицепляется**, и
+сервер при `GET /auth/user` возвращает «не авторизован» и сбрасывает `authCookie`. Войти в
+приложение в дефолтном Chrome 143+ **невозможно** без серверного прокси (Edge Function /
+Functions), который переписывал бы `Set-Cookie: Domain` (это уже не статический деплой и
+осознанно не делалось в рамках задания).
+
+**Для проверки production-сборки используйте один из вариантов:**
+
+- **Mozilla Firefox 139.0.x** — проверено, всё работает «из коробки» (third-party cookies
+  по дефолту допускаются для сайтов без known-trackers списка).
+- Любой Chromium с **Chrome ≤ 142** до глобального включения Tracking Protection.
+- Любой Chromium-браузер, в котором вручную включены сторонние cookies для домена
+  `[*.]ya-praktikum.tech`: `chrome://settings/cookies` → «Sites that can always use cookies»
+  → Add → `[*.]ya-praktikum.tech` → Include third-party cookies on this site → Reload.
+
+В **dev-режиме** (`npm run dev`) этой проблемы нет: vite-прокси переписывает домен куки на
+`localhost` через `cookieDomainRewrite`, поэтому она становится first-party и работает в любом
+актуальном браузере.
+
 ### Маршруты
 
 - `/` — авторизация (логин, пароль).
