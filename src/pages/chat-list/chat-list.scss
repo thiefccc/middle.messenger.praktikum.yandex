@@ -1,6 +1,6 @@
 @use "../../styles/variables" as *;
 
-.chat-list-page {
+.messenger {
   display: flex;
   width: 100%;
   min-height: 100vh;
@@ -38,6 +38,17 @@
   overflow-y: auto;
 }
 
+.chat-list__error {
+  padding: 8px 20px;
+  color: $color-error;
+  font-size: 13px;
+}
+
+.chat-list__footer {
+  padding: 12px 20px;
+  border-top: 1px solid $color-border;
+}
+
 .chat-item {
   display: flex;
   align-items: center;
@@ -48,6 +59,10 @@
 }
 
 .chat-item:hover {
+  background: $color-bg;
+}
+
+.chat-item--active {
   background: $color-bg;
 }
 
@@ -78,4 +93,13 @@
   flex-shrink: 0;
   align-self: flex-start;
   margin-top: 2px;
+}
+
+.chat-item__badge {
+  background: $color-primary;
+  color: #fff;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 11px;
+  flex-shrink: 0;
 }

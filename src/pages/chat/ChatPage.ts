@@ -45,7 +45,7 @@ export class ChatPage extends Block<ChatPageProps> {
     <main class="chat-page">
       <section class="chat">
         <header class="chat__header">
-          <button class="chat__back" type="button" data-page="chat-list">← Назад</button>
+          <button class="chat__back" type="button" data-page="/messenger">← Назад</button>
           <h1 class="chat__name">{{chatName}}</h1>
         </header>
         <section class="chat__messages" ref="messages">

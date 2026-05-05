@@ -8,15 +8,44 @@
 
 Проект развёрнут: [https://resilient-monstera-55c5ab.netlify.app/](https://resilient-monstera-55c5ab.netlify.app/)
 
-### Страницы
+### ⚠️ ВАЖНО: ограничение по браузеру при проверке production-сборки
 
-- [Авторизация](https://resilient-monstera-55c5ab.netlify.app/#login) — форма входа (логин, пароль). Стартовый экран.
-- [Регистрация](https://resilient-monstera-55c5ab.netlify.app/#register) — форма регистрации (почта, логин, имя, фамилия, телефон, пароль, подтверждение пароля).
-- [404](https://resilient-monstera-55c5ab.netlify.app/#error404) — страница «не найдено».
-- [500](https://resilient-monstera-55c5ab.netlify.app/#error500) — страница серверной ошибки.
-- [Список чатов](https://resilient-monstera-55c5ab.netlify.app/#chat-list) — перечень доступных чатов с аватаром, именем и последним сообщением.
-- [Переписка](https://resilient-monstera-55c5ab.netlify.app/#chat) — экран чата с сообщениями и полем ввода.
-- [Профиль](https://resilient-monstera-55c5ab.netlify.app/#profile) — просмотр и редактирование данных пользователя, загрузка аватара.
+API Praktikum (`https://ya-praktikum.tech`) выдаёт авторизационную куку с атрибутами
+`Domain=ya-praktikum.tech; HttpOnly; Secure; SameSite=None`. Production-сборка ходит на этот
+API напрямую с домена `*.netlify.app`, поэтому в браузере это **third-party cookie**.
+
+Современные **Chromium-браузеры (Chrome / Edge / Brave) начиная с версии ~143 по
+умолчанию режут такие cookies политикой Tracking Protection** (Privacy Sandbox). На запросах
+видны заголовки `sec-fetch-site: cross-site` и `sec-fetch-storage-access: none` — кука лежит
+в `Application → Cookies → ya-praktikum.tech`, но в кросс-сайт запрос **не прицепляется**, и
+сервер при `GET /auth/user` возвращает «не авторизован» и сбрасывает `authCookie`. Войти в
+приложение в дефолтном Chrome 143+ **невозможно** без серверного прокси (Edge Function /
+Functions), который переписывал бы `Set-Cookie: Domain` (это уже не статический деплой и
+осознанно не делалось в рамках задания).
+
+**Для проверки production-сборки используйте один из вариантов:**
+
+- **Mozilla Firefox 139.0.x** — проверено, всё работает «из коробки» (third-party cookies
+  по дефолту допускаются для сайтов без known-trackers списка).
+- Любой Chromium с **Chrome ≤ 142** до глобального включения Tracking Protection.
+- Любой Chromium-браузер, в котором вручную включены сторонние cookies для домена
+  `[*.]ya-praktikum.tech`: `chrome://settings/cookies` → «Sites that can always use cookies»
+  → Add → `[*.]ya-praktikum.tech` → Include third-party cookies on this site → Reload.
+
+В **dev-режиме** (`npm run dev`) этой проблемы нет: vite-прокси переписывает домен куки на
+`localhost` через `cookieDomainRewrite`, поэтому она становится first-party и работает в любом
+актуальном браузере.
+
+### Маршруты
+
+- `/` — авторизация (логин, пароль).
+- `/sign-up` — регистрация (почта, логин, имя, фамилия, телефон, пароль, подтверждение пароля).
+- `/settings` — настройки профиля: просмотр данных, редактирование, смена пароля, загрузка аватара, выход.
+- `/messenger` — мессенджер: список чатов слева, активный чат справа. Создание/удаление чатов, добавление и удаление пользователей в чате.
+- `/404` — страница «не найдено» (отображается также для несуществующих маршрутов через fallback).
+- `/500` — страница серверной ошибки.
+
+Маршруты `/settings` и `/messenger` защищены авторизацией: при отсутствии сессии происходит редирект на `/`. Авторизованный пользователь, попадая на `/` или `/sign-up`, перенаправляется на `/messenger`.
 
 ## Стек
 
@@ -29,24 +58,48 @@
 
 ## Архитектура
 
-Проект построен по паттерну MVC:
+Проект построен по паттерну MVC + Service/Controller:
 
-- **View** — базовый класс `Block` и наследующие от него страницы/компоненты. Генерация содержимого через Handlebars.
-- **Controller** — `Router` (hash-навигация) управляет жизненным циклом страниц.
-- **Model** — данные и сервисы (готово к подключению API).
+- **View** — базовый класс `Block` и страницы/компоненты, наследующие от него. Шаблоны на Handlebars.
+- **Router** — собственный SPA-роутер с поддержкой History API, guard'ом и fallback-маршрутом.
+- **Store** — глобальный синглтон-стор с подпиской и иммутабельным `setState(path, value)`. Компоненты подключаются через HOC `connect(mapStateToProps)`, по курсу.
+- **Service** — классы в `api/` (`AuthService`, `UserService`, `ChatService`), описывают запросы к серверу. Каждый сервис наследует `BaseAPI` и использует общий `HTTPTransport` (нейминг оставил привычный Service, вместо API)
+- **Controller** — классы в `controllers/` (`AuthController`, `UserController`, `ChatController`), содержат бизнес-логику: вызывают сервисы, управляют состоянием стора, обрабатывают ошибки. Компоненты вызывают только контроллеры.
 
 ### Структура проекта
 
 ```
 src/
-├── framework/          # Block, Router, registerComponent
+├── api/                # BaseAPI, AuthService, UserService, ChatService, types
+├── controllers/        # AuthController, UserController, ChatController
+├── framework/          # Block, Router, Route, Store, connect, registerComponent
 ├── components/         # Button, Input, Link, Avatar, ValidationError
-├── pages/              # LoginPage, RegisterPage, ProfilePage, ChatPage, ChatListPage, ErrorPage
+├── pages/              # LoginPage, RegisterPage, ProfilePage (settings),
+│                       # ChatListPage (messenger), ChatPage, ErrorPage
 ├── styles/             # Общие стили, переменные, reset
-├── types/              # Интерфейсы: MessageData, ChatItem, ProfileData, ErrorData
-├── utils/              # Валидация, форматирование
+├── types/              # Indexed, ChatItem, ProfileData, ErrorData, ...
+├── utils/              # HTTPTransport, queryStringify, isEqual, merge, set,
+│                       # cloneDeep, trim, typeChecks, validation, formatTime,
+│                       # renderDOM
 └── main.ts             # Точка входа
 ```
+
+### Сервисы (BaseAPI)
+
+Базовый класс `BaseAPI` содержит CRUD. Конкретные сервисы расширяют его и вызывают свой инстанс `HTTPTransport`, привязанный к подресурсу (TODO переделать по-чловечески из наследования на декомпозицию?):
+
+- `AuthService` — `signIn`, `signUp`, `logout`, `getUser`.
+- `UserService` — `updateProfile`, `updatePassword`, `updateAvatar`, `searchByLogin`, `getById`.
+- `ChatService` — `list`, `create`, `deleteChat`, `addUsers`, `removeUsers`, `getToken`.
+
+### Контроллеры
+
+Контроллеры — единственные точки входа из View в API. Они:
+
+- Вызывают сервисы.
+- Складывают результат в `Store` (`store.setState('user', ...)`, `store.setState('chats.list', ...)` и т.д.).
+- Извлекают `reason` из ошибок API и кладут в `auth.error`, `settings.error`, `chats.error`.
+- При необходимости делают навигацию через `Router.go(...)`.
 
 ### Компонентный подход
 
@@ -54,13 +107,15 @@ src/
 - Жизненный цикл: `componentDidMount`, `componentWillUnmount`.
 - Обновление через `setProps()` — вызывает ререндер.
 - Компоненты регистрируются как Handlebars-хелперы через `registerComponent`.
+- HOC `connect(mapStateToProps)` подписывает компонент на стор и автоматически отписывается при размонтировании.
 
 ### Валидация форм
 
 Единый механизм валидации для всех форм:
+
 - Валидация на `blur` (встроена в компонент Input).
 - Повторная проверка при `submit`.
-- Правила: `first_name`, `second_name`, `login`, `email`, `password`, `phone`, `message`.
+- Правила: `first_name`, `second_name`, `display_name`, `login`, `email`, `password`, `phone`, `message`.
 - Ошибки отображаются через компонент `ValidationError`.
 
 ## Установка
