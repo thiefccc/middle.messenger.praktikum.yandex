@@ -12,10 +12,13 @@ interface CompiledPattern {
 
 function compilePattern(pattern: string): CompiledPattern {
   const keys: string[] = [];
-  const regexStr = pattern.replace(/\/:(\w+)(\?)?/g, (_, key: string, optional?: string) => {
-    keys.push(key);
-    return optional ? '(?:/([^/]+))?' : '/([^/]+)';
-  });
+  const regexStr = pattern.replace(
+    /\/:(\w+)(\?)?/g,
+    (_, key: string, optional?: string) => {
+      keys.push(key);
+      return optional ? '(?:/([^/]+))?' : '/([^/]+)';
+    },
+  );
   return { regex: new RegExp(`^${regexStr}$`), keys };
 }
 

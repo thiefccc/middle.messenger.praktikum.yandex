@@ -1,7 +1,12 @@
 import HTTPTransport from '../utils/HTTPTransport';
 import { BaseAPI } from './BaseAPI';
 import { API_BASE_URL } from './constants';
-import type { SignInRequest, SignUpRequest, SignUpResponse, UserDTO } from './types';
+import type {
+  SignInRequest,
+  SignUpRequest,
+  SignUpResponse,
+  UserDTO,
+} from './types';
 
 const authInstance = new HTTPTransport(`${API_BASE_URL}/auth`);
 

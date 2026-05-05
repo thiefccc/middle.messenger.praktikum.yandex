@@ -36,6 +36,13 @@ export default defineConfig({
           });
         },
       },
+      "/ws": {
+        target: "wss://ya-praktikum.tech",
+        changeOrigin: true,
+        ws: true,
+        secure: true,
+        rewriteWsOrigin: true,
+      },
     },
   },
 });

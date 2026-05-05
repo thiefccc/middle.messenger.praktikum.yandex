@@ -25,7 +25,9 @@ export function connect(mapStateToProps: MapStateToProps) {
         this.__unsubscribe = store.subscribe(() => {
           const newState = mapStateToProps(store.getState());
 
-          if (!isEqual(this.__mappedState as PlainObject, newState as PlainObject)) {
+          if (
+            !isEqual(this.__mappedState as PlainObject, newState as PlainObject)
+          ) {
             this.__mappedState = newState;
             this.setProps({ ...newState });
           }

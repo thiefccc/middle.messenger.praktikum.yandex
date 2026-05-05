@@ -36,7 +36,12 @@ export abstract class Block<Props extends object = object> {
   }
 
   public setProps(props: Partial<Props>): void {
-    this.props = { ...this.props, ...props, __children: [], __refs: {} } as BlockProps<Props>;
+    this.props = {
+      ...this.props,
+      ...props,
+      __children: [],
+      __refs: {},
+    } as BlockProps<Props>;
     this.render();
   }
 

@@ -1,5 +1,6 @@
 import chatService from '../api/ChatService';
 import userController from './UserController';
+import messagesController from './MessagesController';
 import store from '../framework/Store';
 import { extractReason } from '../utils/extractReason';
 import type { ChatDTO } from '../api/types';
@@ -17,7 +18,10 @@ class ChatController {
       this.bindPopstateOnce();
       this.restoreActiveChatFromUrl(chats);
     } catch (error) {
-      store.setState('chats.error', extractReason(error, 'Не удалось загрузить чаты'));
+      store.setState(
+        'chats.error',
+        extractReason(error, 'Не удалось загрузить чаты'),
+      );
     }
   }
 
@@ -28,7 +32,10 @@ class ChatController {
       await this.fetchChats();
       return true;
     } catch (error) {
-      store.setState('chats.error', extractReason(error, 'Не удалось создать чат'));
+      store.setState(
+        'chats.error',
+        extractReason(error, 'Не удалось создать чат'),
+      );
       return false;
     }
   }
@@ -40,7 +47,10 @@ class ChatController {
       await this.fetchChats();
       return true;
     } catch (error) {
-      store.setState('chats.error', extractReason(error, 'Не удалось удалить чат'));
+      store.setState(
+        'chats.error',
+        extractReason(error, 'Не удалось удалить чат'),
+      );
       return false;
     }
   }
@@ -58,12 +68,18 @@ class ChatController {
       await this.fetchChatUsers(chatId);
       return true;
     } catch (error) {
-      store.setState('chats.error', extractReason(error, 'Не удалось добавить пользователя'));
+      store.setState(
+        'chats.error',
+        extractReason(error, 'Не удалось добавить пользователя'),
+      );
       return false;
     }
   }
 
-  public async removeUserByLogin(login: string, chatId: number): Promise<boolean> {
+  public async removeUserByLogin(
+    login: string,
+    chatId: number,
+  ): Promise<boolean> {
     store.setState('chats.error', null);
     const userId = await userController.searchByLogin(login);
     if (userId === null) {
@@ -76,7 +92,10 @@ class ChatController {
       await this.fetchChatUsers(chatId);
       return true;
     } catch (error) {
-      store.setState('chats.error', extractReason(error, 'Не удалось удалить пользователя'));
+      store.setState(
+        'chats.error',
+        extractReason(error, 'Не удалось удалить пользователя'),
+      );
       return false;
     }
   }
@@ -86,24 +105,39 @@ class ChatController {
       const users = await chatService.getUsers(chatId);
       store.setState('chats.activeUsers', users);
     } catch (error) {
-      store.setState('chats.error', extractReason(error, 'Не удалось загрузить участников'));
+      store.setState(
+        'chats.error',
+        extractReason(error, 'Не удалось загрузить участников'),
+      );
     }
   }
 
-  public async selectChat(chatId: number | null, mode: 'push' | 'replace' = 'push'): Promise<void> {
+  public async selectChat(
+    chatId: number | null,
+    mode: 'push' | 'replace' = 'push',
+  ): Promise<void> {
     store.setState('chats.activeId', chatId);
     store.setState('chats.activeUsers', []);
     this.persistActiveChatInUrl(chatId, mode);
     if (chatId !== null) {
       await this.fetchChatUsers(chatId);
+      void messagesController.open(chatId);
+    } else {
+      void messagesController.close();
     }
   }
 
-  private persistActiveChatInUrl(chatId: number | null, mode: 'push' | 'replace' = 'push'): void {
+  private persistActiveChatInUrl(
+    chatId: number | null,
+    mode: 'push' | 'replace' = 'push',
+  ): void {
     if (!window.location.pathname.startsWith(MESSENGER_BASE_PATH)) {
       return;
     }
-    const target = chatId !== null ? `${MESSENGER_BASE_PATH}/${chatId}` : MESSENGER_BASE_PATH;
+    const target =
+      chatId !== null
+        ? `${MESSENGER_BASE_PATH}/${chatId}`
+        : MESSENGER_BASE_PATH;
     if (target === window.location.pathname) {
       return;
     }
@@ -115,10 +149,14 @@ class ChatController {
   }
 
   private bindPopstateOnce(): void {
-    if (this.popstateBound) return;
+    if (this.popstateBound) {
+      return;
+    }
     this.popstateBound = true;
     window.addEventListener('popstate', () => {
-      const chats = (store.getState().chats as { list?: ChatDTO[] } | undefined)?.list ?? [];
+      const chats =
+        (store.getState().chats as { list?: ChatDTO[] } | undefined)?.list ??
+        [];
       this.syncActiveChatFromUrl(chats);
     });
   }
@@ -134,7 +172,9 @@ class ChatController {
 
     const match = window.location.pathname.match(/^\/messenger\/(\d+)$/);
     const urlId = match ? Number(match[1]) : null;
-    const currentId = (store.getState().chats as { activeId?: number | null } | undefined)?.activeId ?? null;
+    const currentId =
+      (store.getState().chats as { activeId?: number | null } | undefined)
+        ?.activeId ?? null;
 
     if (urlId === currentId) {
       return;
