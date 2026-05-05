@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+# Подстраховка на случай, если хук запускается из не-git cwd (например, GUI-клиентом).
+ cd "$(git rev-parse --show-toplevel)" || exit 1
+
+npx lint-staged
+npm run lint:ts
+npm test -- --bail
