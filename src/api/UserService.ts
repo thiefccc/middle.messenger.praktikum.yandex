@@ -1,7 +1,11 @@
 import HTTPTransport from '../utils/HTTPTransport';
 import { BaseAPI } from './BaseAPI';
 import { API_BASE_URL } from './constants';
-import type { ChangePasswordRequest, UpdateProfileRequest, UserDTO } from './types';
+import type {
+  ChangePasswordRequest,
+  UpdateProfileRequest,
+  UserDTO,
+} from './types';
 
 const userInstance = new HTTPTransport(`${API_BASE_URL}/user`);
 

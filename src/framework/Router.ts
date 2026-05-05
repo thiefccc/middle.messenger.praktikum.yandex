@@ -42,10 +42,10 @@ export class Router {
   }
 
   start(): void {
-    window.onpopstate = ((event: PopStateEvent) => {
+    window.onpopstate = (event: PopStateEvent) => {
       const target = event.currentTarget as Window;
       this.onRoute(target.location.pathname);
-    });
+    };
 
     this.onRoute(window.location.pathname);
   }
@@ -92,7 +92,9 @@ export class Router {
 
   private attachDataPageLinks(): void {
     const root = document.querySelector(this.rootQuery);
-    if (!root) return;
+    if (!root) {
+      return;
+    }
 
     root.querySelectorAll('[data-page]').forEach((el) => {
       el.addEventListener('click', (e: Event) => {

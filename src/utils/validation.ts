@@ -4,10 +4,12 @@ type ValidationRule = {
 };
 
 const NAME_PATTERN = /^[A-ZА-ЯЁ][a-zA-Zа-яёА-ЯЁ-]*$/;
-const NAME_ERROR = 'Латиница или кириллица, первая буква заглавная, без пробелов и цифр';
+const NAME_ERROR =
+  'Латиница или кириллица, первая буква заглавная, без пробелов и цифр';
 
 const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*\d).{8,40}$/;
-const PASSWORD_ERROR = '8–40 символов, минимум одна заглавная буква и одна цифра';
+const PASSWORD_ERROR =
+  '8–40 символов, минимум одна заглавная буква и одна цифра';
 
 const rules: Record<string, ValidationRule> = {
   first_name: {
@@ -24,7 +26,8 @@ const rules: Record<string, ValidationRule> = {
   },
   login: {
     pattern: /^(?![\d]+$)[a-zA-Z\d_-]{3,20}$/,
-    errorMessage: '3–20 символов, латиница, может содержать цифры, дефис, подчёркивание',
+    errorMessage:
+      '3–20 символов, латиница, может содержать цифры, дефис, подчёркивание',
   },
   email: {
     pattern: /^[a-zA-Z\d._%+-]+@[a-zA-Z]+\.[a-zA-Z]{2,}$/,
@@ -57,7 +60,9 @@ export function validate(name: string, value: string): string | null {
   return rule.errorMessage;
 }
 
-export function validateForm(form: HTMLFormElement): Record<string, string> | null {
+export function validateForm(
+  form: HTMLFormElement,
+): Record<string, string> | null {
   const formData = new FormData(form);
   const data: Record<string, string> = {};
   let hasErrors = false;

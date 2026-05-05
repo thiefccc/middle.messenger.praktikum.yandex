@@ -150,7 +150,9 @@ class SettingsPage extends Block<SettingsPageProps> {
 
   private bindAvatarUpload(): void {
     const input = this.refs['avatarInput'] as HTMLInputElement | undefined;
-    if (!input) return;
+    if (!input) {
+      return;
+    }
     input.addEventListener('change', () => {
       const file = input.files?.[0];
       if (file) {
@@ -165,21 +167,29 @@ class SettingsPage extends Block<SettingsPageProps> {
     const logoutBtn = this.refs['logoutBtn'] as HTMLElement | undefined;
 
     editBtn?.addEventListener('click', () => this.setProps({ editing: true }));
-    passwordBtn?.addEventListener('click', () => this.setProps({ changingPassword: true }));
+    passwordBtn?.addEventListener('click', () =>
+      this.setProps({ changingPassword: true }),
+    );
     logoutBtn?.addEventListener('click', () => authController.logout());
   }
 
   private bindEditMode(): void {
     const form = this.refs['form'] as HTMLFormElement | undefined;
     const cancelBtn = this.refs['cancelBtn'] as HTMLElement | undefined;
-    if (!form) return;
+    if (!form) {
+      return;
+    }
 
-    cancelBtn?.addEventListener('click', () => this.setProps({ editing: false }));
+    cancelBtn?.addEventListener('click', () =>
+      this.setProps({ editing: false }),
+    );
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = validateForm(form);
-      if (!data) return;
+      if (!data) {
+        return;
+      }
 
       const ok = await userController.updateProfile({
         first_name: data.first_name,
@@ -198,15 +208,23 @@ class SettingsPage extends Block<SettingsPageProps> {
   private bindPasswordMode(): void {
     const form = this.refs['passwordForm'] as HTMLFormElement | undefined;
     const cancelBtn = this.refs['cancelPasswordBtn'] as HTMLElement | undefined;
-    if (!form) return;
+    if (!form) {
+      return;
+    }
 
-    cancelBtn?.addEventListener('click', () => this.setProps({ changingPassword: false }));
+    cancelBtn?.addEventListener('click', () =>
+      this.setProps({ changingPassword: false }),
+    );
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = validateForm(form);
-      if (!data) return;
-      if (data.password !== data.password_confirm) return;
+      if (!data) {
+        return;
+      }
+      if (data.password !== data.password_confirm) {
+        return;
+      }
 
       const ok = await userController.updatePassword({
         oldPassword: data.oldPassword,
@@ -223,7 +241,9 @@ function mapStateToProps(state: Indexed): Indexed {
   const user = (state.user as UserDTO | null) ?? null;
   const settings = state.settings as Indexed | undefined;
 
-  const displayName = user?.display_name || `${user?.first_name ?? ''} ${user?.second_name ?? ''}`.trim();
+  const displayName =
+    user?.display_name ||
+    `${user?.first_name ?? ''} ${user?.second_name ?? ''}`.trim();
   const userInitial = user?.first_name?.charAt(0) || '?';
   const avatarUrl = user?.avatar ? `${RESOURCES_BASE_URL}${user.avatar}` : '';
 

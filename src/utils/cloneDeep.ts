@@ -1,9 +1,7 @@
 function cloneDeep<T extends object = object>(obj: T): T {
   if (Array.isArray(obj)) {
     return obj.map((item) =>
-      typeof item === 'object' && item !== null
-				? cloneDeep(item)
-				: item
+      typeof item === 'object' && item !== null ? cloneDeep(item) : item,
     ) as T;
   }
 

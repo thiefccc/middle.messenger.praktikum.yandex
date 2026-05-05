@@ -11,7 +11,10 @@ class UserController {
       store.setState('user', user);
       return true;
     } catch (error) {
-      store.setState('settings.error', extractReason(error, 'Не удалось обновить профиль'));
+      store.setState(
+        'settings.error',
+        extractReason(error, 'Не удалось обновить профиль'),
+      );
       return false;
     }
   }
@@ -22,7 +25,10 @@ class UserController {
       await userService.updatePassword(data);
       return true;
     } catch (error) {
-      store.setState('settings.error', extractReason(error, 'Не удалось обновить пароль'));
+      store.setState(
+        'settings.error',
+        extractReason(error, 'Не удалось обновить пароль'),
+      );
       return false;
     }
   }
@@ -36,7 +42,10 @@ class UserController {
       store.setState('user', user);
       return true;
     } catch (error) {
-      store.setState('settings.error', extractReason(error, 'Не удалось обновить аватар'));
+      store.setState(
+        'settings.error',
+        extractReason(error, 'Не удалось обновить аватар'),
+      );
       return false;
     }
   }

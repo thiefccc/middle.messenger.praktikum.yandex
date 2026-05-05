@@ -20,7 +20,9 @@ export class Link extends Block<LinkProps> {
 
   protected componentDidMount(): void {
     const el = this.element();
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     el.addEventListener('click', (e: Event) => {
       const page = this.props.page;
