@@ -8,11 +8,11 @@ const METHODS = {
   DELETE: 'DELETE',
 } as const;
 
-type HTTPMethod = (typeof METHODS)[keyof typeof METHODS];
+type HTTPMethodName = (typeof METHODS)[keyof typeof METHODS];
 
 export interface RequestOptions {
   headers?: Record<string, string>;
-  method?: HTTPMethod;
+  method?: HTTPMethodName;
   data?: unknown;
   responseType?: XMLHttpRequestResponseType;
   timeout?: number;
@@ -26,6 +26,8 @@ export interface HTTPError {
   request: XMLHttpRequest;
 }
 
+type HTTPMethod = <R = unknown>(url: string, options?: RequestOptions) => Promise<R>;
+
 class HTTPTransport {
   private baseUrl: string;
 
@@ -33,21 +35,17 @@ class HTTPTransport {
     this.baseUrl = baseUrl;
   }
 
-  public get = <R = unknown>(url: string, options: RequestOptions = {}): Promise<R> => {
-    return this.request<R>(url, { ...options, method: METHODS.GET }, options.timeout);
-  };
+  public get: HTTPMethod = (url, options = {}) =>
+    this.request(url, { ...options, method: METHODS.GET }, options.timeout);
 
-  public post = <R = unknown>(url: string, options: RequestOptions = {}): Promise<R> => {
-    return this.request<R>(url, { ...options, method: METHODS.POST }, options.timeout);
-  };
+  public post: HTTPMethod = (url, options = {}) =>
+    this.request(url, { ...options, method: METHODS.POST }, options.timeout);
 
-  public put = <R = unknown>(url: string, options: RequestOptions = {}): Promise<R> => {
-    return this.request<R>(url, { ...options, method: METHODS.PUT }, options.timeout);
-  };
+  public put: HTTPMethod = (url, options = {}) =>
+    this.request(url, { ...options, method: METHODS.PUT }, options.timeout);
 
-  public delete = <R = unknown>(url: string, options: RequestOptions = {}): Promise<R> => {
-    return this.request<R>(url, { ...options, method: METHODS.DELETE }, options.timeout);
-  };
+  public delete: HTTPMethod = (url, options = {}) =>
+    this.request(url, { ...options, method: METHODS.DELETE }, options.timeout);
 
   private request = <R>(url: string, options: RequestOptions = {}, timeout = 5000): Promise<R> => {
     const { headers = {}, method, data, responseType } = options;
