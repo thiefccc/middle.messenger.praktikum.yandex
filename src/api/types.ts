@@ -75,3 +75,25 @@ export interface ChatUserDTO {
   avatar: string | null;
   role: 'admin' | 'regular';
 }
+
+export type MessageType = 'message' | 'file' | 'sticker';
+
+export interface MessageFileDTO {
+  id: number;
+  user_id: number;
+  path: string;
+  filename: string;
+  content_type: string;
+  content_size: number;
+  upload_date: string;
+}
+
+export interface MessageDTO {
+  id?: number | string;
+  chat_id?: number;
+  time: string;
+  user_id: number | string;
+  content: string;
+  type: MessageType;
+  file?: MessageFileDTO;
+}

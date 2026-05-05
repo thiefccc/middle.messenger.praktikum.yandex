@@ -1,9 +1,16 @@
 import { Block } from '../../framework/Block';
 import { connect } from '../../framework/connect';
 import chatController from '../../controllers/ChatController';
+import messagesController from '../../controllers/MessagesController';
 import { RESOURCES_BASE_URL } from '../../api/constants';
+import { formatTime } from '../../utils/formatTime';
 import type { Indexed } from '../../types/indexed';
-import type { ChatDTO, ChatUserDTO } from '../../api/types';
+import type {
+  ChatDTO,
+  ChatUserDTO,
+  MessageDTO,
+  UserDTO,
+} from '../../api/types';
 import './chat-list.scss';
 import '../chat/chat.scss';
 
@@ -25,6 +32,17 @@ interface ActiveChatView {
   avatarUrl: string;
 }
 
+interface MessageView {
+  id: string;
+  content: string;
+  time: string;
+  isMine: boolean;
+  isFile: boolean;
+  isImage: boolean;
+  fileUrl: string;
+  fileName: string;
+}
+
 interface MessengerPageProps {
   chatItems?: ChatListItemView[];
   activeChat?: ActiveChatView | null;
@@ -32,6 +50,10 @@ interface MessengerPageProps {
   activeUsersCountText?: string;
   activeUsersText?: string;
   chatsError?: string | null;
+  // TODO - put to messages Props Model
+  messages?: MessageView[];
+  messagesLoading?: boolean;
+  messagesError?: string | null;
 }
 
 class MessengerPage extends Block<MessengerPageProps> {
@@ -51,7 +73,7 @@ class MessengerPage extends Block<MessengerPageProps> {
           {{{ Link label="Профиль" page="/settings" }}}
         </nav>
         <div class="chat-list__search">
-          {{{ Input className="input-search" type="text" name="search" placeholder="Поиск" }}}
+          {{{ Input className="input-search" type="text" name="search" placeholder="Поиск" noValidation=true }}}
         </div>
         <ul class="chat-list__items">
           {{#each chatItems}}
@@ -106,14 +128,37 @@ class MessengerPage extends Block<MessengerPageProps> {
         </ul>
         {{/if}}
 
-        <section class="chat__messages">
-          <p class="chat__placeholder">Реал-тайм сообщения будут добавлены в следующем спринте.</p>
+        <section class="chat__messages" ref="messagesScroll">
+          {{#if messages.length}}
+            <ol class="messages-list">
+              {{#each messages}}
+              <li class="message {{#if isMine}}message--mine{{/if}}">
+                {{#if isFile}}
+                  <a class="message__file" href="{{fileUrl}}" target="_blank" rel="noopener noreferrer">
+                    {{#if isImage}}
+                      <img class="message__image" src="{{fileUrl}}" alt="{{fileName}}" />
+                    {{else}}
+                      <span class="message__attachment">📎 {{fileName}}</span>
+                    {{/if}}
+                  </a>
+                {{else}}
+                  <p class="message__content">{{content}}</p>
+                {{/if}}
+                <span class="message__time">{{time}}</span>
+              </li>
+              {{/each}}
+            </ol>
+          {{else if messagesLoading}}
+            <p class="chat__placeholder">Загружаем историю…</p>
+          {{else}}
+            <p class="chat__placeholder">Сообщений пока нет.</p>
+          {{/if}}
+          {{#if messagesError}}<p class="chat__error">{{messagesError}}</p>{{/if}}
         </section>
 
-        {{!-- TODO: wire this form to the websocket message API once it is available --}}
         <footer class="chat__footer">
           <form class="chat__form" ref="messageForm">
-            <input class="input-chat" type="text" name="message" placeholder="Сообщение..." />
+            <input class="input-chat" type="text" name="message" placeholder="Сообщение..." autocomplete="off" />
             <button class="button-send" type="submit">Отправить</button>
           </form>
         </footer>
@@ -135,11 +180,14 @@ class MessengerPage extends Block<MessengerPageProps> {
     this.bindCreateChat();
     this.bindActiveChatControls();
     this.bindMessageForm();
+    this.scrollMessagesToBottom();
   }
 
   private bindChatList(): void {
     const el = this.element();
-    if (!el) return;
+    if (!el) {
+      return;
+    }
 
     el.querySelectorAll<HTMLElement>('.chat-item').forEach((item) => {
       item.addEventListener('click', () => {
@@ -164,7 +212,9 @@ class MessengerPage extends Block<MessengerPageProps> {
 
   private bindActiveChatControls(): void {
     const activeChat = this.props.activeChat;
-    if (!activeChat) return;
+    if (!activeChat) {
+      return;
+    }
 
     const addBtn = this.refs['addUserBtn'] as HTMLElement | undefined;
     const removeBtn = this.refs['removeUserBtn'] as HTMLElement | undefined;
@@ -193,18 +243,39 @@ class MessengerPage extends Block<MessengerPageProps> {
 
   private bindMessageForm(): void {
     const form = this.refs['messageForm'] as HTMLFormElement | undefined;
-    form?.addEventListener('submit', (event) => {
+    if (!form) {
+      return;
+    }
+
+    form.addEventListener('submit', (event) => {
       event.preventDefault();
-      const input = form.elements.namedItem('message') as HTMLInputElement | null;
-      if (!input || !input.value.trim()) return;
-      // TODO: send the message through the websocket transport once it is implemented
-      console.warn('Message sending is not implemented yet:', input.value);
-      input.value = '';
+      const input = form.elements.namedItem(
+        'message',
+      ) as HTMLInputElement | null;
+      if (!input || !input.value.trim()) {
+        return;
+      }
+
+      const ok = messagesController.sendMessage(input.value);
+      if (ok) {
+        input.value = '';
+      }
     });
+  }
+
+  private scrollMessagesToBottom(): void {
+    const container = this.refs['messagesScroll'] as HTMLElement | undefined;
+    if (!container) {
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
   }
 }
 
-function buildChatItem(chat: ChatDTO, activeId: number | null): ChatListItemView {
+function buildChatItem(
+  chat: ChatDTO,
+  activeId: number | null,
+): ChatListItemView {
   return {
     id: chat.id,
     title: chat.title,
@@ -218,7 +289,9 @@ function buildChatItem(chat: ChatDTO, activeId: number | null): ChatListItemView
 }
 
 function buildActiveChat(chat: ChatDTO | null): ActiveChatView | null {
-  if (!chat) return null;
+  if (!chat) {
+    return null;
+  }
   return {
     id: chat.id,
     title: chat.title,
@@ -228,9 +301,12 @@ function buildActiveChat(chat: ChatDTO | null): ActiveChatView | null {
 }
 
 function buildActiveUserView(user: ChatUserDTO) {
-  const fullName = [user.first_name, user.second_name].filter(Boolean).join(' ');
+  const fullName = [user.first_name, user.second_name]
+    .filter(Boolean)
+    .join(' ');
   const viewName = user.display_name || fullName || user.login;
-  const letterSource = user.display_name || user.first_name || user.login || '?';
+  const letterSource =
+    user.display_name || user.first_name || user.login || '?';
   return {
     id: user.id,
     viewName,
@@ -241,8 +317,36 @@ function buildActiveUserView(user: ChatUserDTO) {
 }
 
 function buildAvatarUrl(avatar: string | null | undefined): string {
-  if (!avatar) return '';
+  if (!avatar) {
+    return '';
+  }
   return `${RESOURCES_BASE_URL}/${avatar.replace(/^\/+/, '')}`;
+}
+
+function buildMessageView(
+  message: MessageDTO,
+  currentUserId: number | undefined,
+): MessageView {
+  const isFile = message.type === 'file' || message.type === 'sticker';
+  const file = message.file;
+  const fileUrl = file
+    ? `${RESOURCES_BASE_URL}/${file.path.replace(/^\/+/, '')}`
+    : '';
+  const isImage = Boolean(file?.content_type?.startsWith('image/'));
+  const date = new Date(message.time);
+  const time = Number.isFinite(date.getTime()) ? formatTime(date) : '';
+
+  return {
+    id: String(message.id ?? `${message.user_id}-${message.time}`),
+    content: message.content ?? '',
+    time,
+    isMine:
+      currentUserId !== undefined && Number(message.user_id) === currentUserId,
+    isFile,
+    isImage,
+    fileUrl,
+    fileName: file?.filename ?? '',
+  };
 }
 
 function mapStateToProps(state: Indexed): Indexed {
@@ -254,15 +358,32 @@ function mapStateToProps(state: Indexed): Indexed {
   const activeChat = list.find((c) => c.id === activeId) ?? null;
   const activeUserViews = activeUsers.map(buildActiveUserView);
 
+  const user = state.user as UserDTO | null | undefined;
+  const messagesBranch = state.messages as
+    | {
+        byChatId?: Record<string, MessageDTO[]>;
+        loading?: boolean;
+        error?: string | null;
+      }
+    | undefined;
+  const rawMessages =
+    activeId !== null
+      ? (messagesBranch?.byChatId?.[String(activeId)] ?? [])
+      : [];
+  const messageViews = rawMessages.map((m) => buildMessageView(m, user?.id));
+
   return {
     chatItems: list.map((chat) => buildChatItem(chat, activeId)),
     activeChat: buildActiveChat(activeChat),
     activeUsers: activeUserViews,
     activeUsersCountText: activeUserViews.length
-      // TODO pluralize
-      ? `${activeUserViews.length} чела: ${activeUserViews.map((u) => u.viewName).join(', ')}`
+      ? // TODO pluralize
+        `${activeUserViews.length} чела: ${activeUserViews.map((u) => u.viewName).join(', ')}`
       : '',
     chatsError: error,
+    messages: messageViews,
+    messagesLoading: Boolean(messagesBranch?.loading),
+    messagesError: messagesBranch?.error ?? null,
   };
 }
 
