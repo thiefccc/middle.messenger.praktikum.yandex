@@ -54,6 +54,8 @@ Functions), который переписывал бы `Set-Cookie: Domain` (э�
 - Handlebars (шаблонизатор)
 - SCSS (БЭМ)
 - ESLint + Stylelint + Prettier
+- Jest + ts-jest + jsdom (юнит-тесты)
+- Husky + lint-staged (pre-commit hooks)
 - Netlify (деплой)
 
 ## Архитектура
@@ -64,7 +66,8 @@ Functions), который переписывал бы `Set-Cookie: Domain` (э�
 - **Router** — собственный SPA-роутер с поддержкой History API, guard'ом и fallback-маршрутом.
 - **Store** — глобальный синглтон-стор с подпиской и иммутабельным `setState(path, value)`. Компоненты подключаются через HOC `connect(mapStateToProps)`, по курсу.
 - **Service** — классы в `api/` (`AuthService`, `UserService`, `ChatService`), описывают запросы к серверу. Каждый сервис наследует `BaseAPI` и использует общий `HTTPTransport` (нейминг оставил привычный Service, вместо API)
-- **Controller** — классы в `controllers/` (`AuthController`, `UserController`, `ChatController`), содержат бизнес-логику: вызывают сервисы, управляют состоянием стора, обрабатывают ошибки. Компоненты вызывают только контроллеры.
+- **Controller** — классы в `controllers/` (`AuthController`, `UserController`, `ChatController`, `MessagesController`), содержат бизнес-логику: вызывают сервисы, управляют состоянием стора, обрабатывают ошибки. Компоненты вызывают только контроллеры.
+- **WSTransport** — тонкая обёртка над WebSocket с колбэк-свойствами в стиле XHR (`onOpen` / `onClose` / `onError` / `onMessage`), автоматическим ping раз в 30 секунд и фильтрацией pong-кадров. Реконнект делает `MessagesController` (см. ниже).
 
 ### Структура проекта
 
@@ -78,7 +81,7 @@ src/
 │                       # ChatListPage (messenger), ChatPage, ErrorPage
 ├── styles/             # Общие стили, переменные, reset
 ├── types/              # Indexed, ChatItem, ProfileData, ErrorData, ...
-├── utils/              # HTTPTransport, queryStringify, isEqual, merge, set,
+├── utils/              # HTTPTransport, WSTransport, queryStringify, isEqual, merge, set,
 │                       # cloneDeep, trim, typeChecks, validation, formatTime,
 │                       # renderDOM
 └── main.ts             # Точка входа
@@ -90,7 +93,7 @@ src/
 
 - `AuthService` — `signIn`, `signUp`, `logout`, `getUser`.
 - `UserService` — `updateProfile`, `updatePassword`, `updateAvatar`, `searchByLogin`, `getById`.
-- `ChatService` — `list`, `create`, `deleteChat`, `addUsers`, `removeUsers`, `getToken`.
+- `ChatService` — `list`, `create`, `deleteChat`, `addUsers`, `removeUsers`, `getUsers`, `getToken`, `updateAvatar`.
 
 ### Контроллеры
 
@@ -100,6 +103,22 @@ src/
 - Складывают результат в `Store` (`store.setState('user', ...)`, `store.setState('chats.list', ...)` и т.д.).
 - Извлекают `reason` из ошибок API и кладут в `auth.error`, `settings.error`, `chats.error`.
 - При необходимости делают навигацию через `Router.go(...)`.
+
+`MessagesController` дополнительно:
+
+- Получает токен через `chatService.getToken(chatId)`.
+- Открывает `WSTransport` к `wss://ya-praktikum.tech/ws/chats/<userId>/<chatId>/<token>` (в dev — через прокси Vite на `ws://localhost:3000/ws/...`).
+- Запрашивает историю сообщений командой `{ type: 'get old', content: '0' }` сразу после `open`.
+- Убирает дубликаты сообщений по `id` и сортирует по `time` перед записью в стор, поэтому история и live-сообщения не мешают друг другу.
+- Обрабатывает `close`-события: при коде `<> 1000` выставляет `messages.error` и через 3 секунды делает реконнект для текущего активного чата.
+- При смене чата или `close()` старый сокет закрывается, реконнекты отменяются.
+
+### Real-time чат (WebSocket)
+
+- Поле ввода сообщения имеет атрибут `name="message"`, отправка происходит на `submit` формы (без перезагрузки).
+- При выборе чата `ChatController.selectChat(chatId)` дополнительно вызывает `MessagesController.open(chatId)`. На рефреш страницы `chatId` восстанавливается из URL (`/messenger/:chatId?`), поэтому история чата подгружается автоматически.
+- Live-сообщения от сервера (`type: 'message' | 'file' | 'sticker'`) добавляются в `state.messages.byChatId[chatId]`. Frontend различает текстовые, файловые и стикер-сообщения, для файлов отдаёт ссылку на `/api/v2/resources/{path}` либо картинку.
+- `Ping` шлётся автоматически каждые 30 секунд, pong от сервера фильтруется внутри `WSTransport` чтобы не мусорить.
 
 ### Компонентный подход
 
@@ -118,6 +137,14 @@ src/
 - Правила: `first_name`, `second_name`, `display_name`, `login`, `email`, `password`, `phone`, `message`.
 - Ошибки отображаются через компонент `ValidationError`.
 
+### Защита от XSS
+
+- Все интерполяции в шаблонах сделаны через `{{ value }}` (Handlebars по идее экранирует HTML-сущности по умолчанию).
+- `{{{ ... }}}` используется **исключительно** для зарегистрированных компонент-хелперов, которые возвращают известную не параметризированную разметку => пользовательский контент туда не попадает.
+- Контент сообщений, имена, заголовки чатов и т.д. рендерятся как обычный текст, поэтому payload-ы вида `<img src=x onerror="alert(1)">` остаются обычной строкой.
+- В `index.html` прописан `Content-Security-Policy` (`default-src 'self'`, ограничены `script-src` / `style-src` / `connect-src` / `img-src` / `frame-ancestors 'none'` / `object-src 'none'`).
+- Добавлен, даже тест `src/framework/Block.test.ts → "escapes HTML entities..."`.
+
 ## Установка
 
 ```bash
@@ -125,6 +152,8 @@ npm install
 ```
 
 ## Команды
+
+### Разработка и сборка
 
 - `npm run start` — сборка и запуск проекта (порт 3000)
 - `npm run dev` — запуск dev-сервера
@@ -138,6 +167,29 @@ npm install
 - `npm run format` — проверка форматирования (Prettier)
 - `npm run format:fix` — автоисправление форматирования
 
+### Тесты
+
+- `npm test` — запуск всех тестов (Jest + jsdom через `--experimental-vm-modules`)
+
+Покрыт минимум: `HTTPTransport`, `WSTransport`, `Router`, `Route`, `Block`, `Button`, `Input`.
+
+### Pre-commit (Husky)
+
+При попытке `git commit` автоматически выполняются:
+
+1. `lint-staged` — ESLint + Stylelint + Prettier на staged-файлы (с автофиксом).
+2. `tsc --noEmit` — глобальная проверка типов.
+3. `npm test --bail` — все юнит-тесты, прерывание на первой ошибке.
+
+Если нужно срочно закоммитить `git commit --no-verify` (или в Шторме галку отжать, если черзе UI).
+
 ## Прототипы
 
 Описания прототипов экранов находятся в папке `ui/`.
+
+### TODO
+
+1. Заложил файлы и стикеры, но в отправку не добавил скрепку.
+2. Аватарки или имя сообщениях - в чатах на троих не понятно кто пшиет.
+3. Галочки прочитанного в сообщениях.
+4. Запретить по дефолту не админам чата добавлять друзей.
